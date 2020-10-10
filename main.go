@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 )
@@ -11,34 +12,10 @@ type person struct {
 }
 
 func main() {
-	// p1 := person{
-	// 	First: "Vachia",
-	// }
-
-	// p2 := person{
-	// 	First: "Vachira J.",
-	// }
-
-	// xp := []person{p1, p2}
-
-	// bs, err := json.Marshal(xp)
-	// if err != nil {
-	// 	log.Panic(err)
-	// }
-	// fmt.Println("PRINT JSON", string(bs))
-
-	// xp2 := []person{}
-	// err = json.Unmarshal(bs, &xp2)
-	// if err != nil {
-	// 	log.Panic(err)
-	// }
-
-	// fmt.Println("back into a Go data structur", xp2)
 
 	http.HandleFunc("/encode", foo)
 	http.HandleFunc("/decode", bar)
 	http.ListenAndServe(":8080", nil)
-
 }
 
 func foo(w http.ResponseWriter, r *http.Request) {
@@ -46,19 +23,24 @@ func foo(w http.ResponseWriter, r *http.Request) {
 		First: "Vachira",
 	}
 
-	err := json.NewEncoder(w).Encode(p1)
-
+	p2 := person{
+		First: "Nut",
+	}
+	xp := []person{p1, p2}
+	err := json.NewEncoder(w).Encode(xp)
 	if err != nil {
-		log.Println("Encoded bad  data", err)
+		log.Println("Bad data encode", err)
 	}
 }
 
 func bar(w http.ResponseWriter, r *http.Request) {
-	var p1 person
-	err := json.NewDecoder(r.Body).Decode(&p1)
+
+	people := []person{}
+
+	err := json.NewDecoder(r.Body).Decode(&people)
 	if err != nil {
-		log.Println("Decoded bad data", err)
+		log.Println("Bad data to decode", err)
 	}
 
-	log.Println("Person:", p1)
+	fmt.Println(people)
 }
