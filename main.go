@@ -5,9 +5,28 @@ import (
 	"crypto/sha512"
 	"fmt"
 	"log"
+	"time"
 
+	"github.com/dgrijalva/jwt-go"
 	"golang.org/x/crypto/bcrypt"
 )
+
+type UserClaims struct {
+	jwt.StandardClaims
+	SessionId int64
+}
+
+func (u *UserClaims) Valid() error {
+	if !u.VerifyExpiresAt(time.Now().Unix(), true) {
+		return fmt.Errorf("Token has expired")
+	}
+
+	if u.SessionId == 0 {
+		return fmt.Errorf("Invalid session id")
+	}
+
+	return nil
+}
 
 var key = []byte{}
 
@@ -84,4 +103,14 @@ func chechSig(msg, sig []byte) (bool, error) {
 
 	same := hmac.Equal(newSig, sig)
 	return same, nil
+}
+
+func createToken(c *UserClaims) (string, error) {
+	t := jwt.NewWithClaims(jwt.SigningMethodRS512, c)
+	signedToken, err := t.SignedString(key)
+	if err != nil {
+		return "", fmt.Errorf("Error in createToken when signing token: %w", err)
+	}
+
+	return signedToken, nil
 }
